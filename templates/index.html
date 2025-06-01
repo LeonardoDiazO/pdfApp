@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Unir PDFs</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <style>
+        #file-list { list-style: none; padding: 0; }
+        #file-list li {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            cursor: move;
+        }
+        button {
+            margin-top: 10px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Unir archivos PDF</h2>
+
+    <form id="pdfForm" action="/" method="POST" enctype="multipart/form-data">
+        <input type="file" id="pdfFiles" name="pdfs" multiple required accept="application/pdf">
+        <ul id="file-list"></ul>
+        <input type="hidden" name="order" id="orderInput">
+        <button type="submit">Unir PDF</button>
+        <button type="button" id="clearBtn">Limpiar</button>
+    </form>
+
+    <script>
+        const input = document.getElementById("pdfFiles");
+        const fileList = document.getElementById("file-list");
+        const orderInput = document.getElementById("orderInput");
+        const clearBtn = document.getElementById("clearBtn");
+
+        let filesArray = [];
+
+        input.addEventListener("change", function () {
+            filesArray = Array.from(input.files);
+            renderFileList();
+        });
+
+        function renderFileList() {
+            fileList.innerHTML = "";
+            filesArray.forEach((file, index) => {
+                const li = document.createElement("li");
+                li.textContent = file.name;
+                li.dataset.index = index;
+                fileList.appendChild(li);
+            });
+
+            Sortable.create(fileList, {
+                animation: 150,
+                onEnd: function () {
+                    updateOrderInput();
+                }
+            });
+
+            updateOrderInput();
+        }
+
+        function updateOrderInput() {
+            const order = [];
+            document.querySelectorAll("#file-list li").forEach(li => {
+                order.push(li.dataset.index);
+            });
+            orderInput.value = order.join(",");
+        }
+
+        // Limpiar manual
+        clearBtn.addEventListener("click", () => {
+            document.getElementById("pdfForm").reset();
+            fileList.innerHTML = "";
+            orderInput.value = "";
+            filesArray = [];
+        });
+
+        // También limpia después de enviar
+        document.getElementById("pdfForm").addEventListener("submit", () => {
+            setTimeout(() => {
+                document.getElementById("pdfForm").reset();
+                fileList.innerHTML = "";
+                orderInput.value = "";
+                filesArray = [];
+            }, 1000); // Espera a que inicie la descarga
+        });
+    </script>
+</body>
+</html>
