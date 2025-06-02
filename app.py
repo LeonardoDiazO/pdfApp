@@ -60,3 +60,7 @@ def index():
 # ESTE BLOQUE ES CRUCIAL PARA DESPLIEGES DESARROLLO
 #if __name__ == '__main__':
 #    app.run()
+
+# ESTE BLOQUE ES CRUCIAL PARA DESPLIEGE EN PRODUCCION
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
