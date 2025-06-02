@@ -1,7 +1,9 @@
 services:
   - type: web
-    name: pdf-merger-app
-    env: python
+    name: pdf-merger
+    runtime: python
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn app:app"
-    plan: free
+    envVars:
+      - key: FLASK_ENV
+        value: production

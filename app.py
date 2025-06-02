@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, send_file, redirect, url_for
 from PyPDF2 import PdfReader, PdfWriter
 import os
 from werkzeug.utils import secure_filename
+from waitress import serve
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -31,7 +32,6 @@ def index():
         except ValueError:
             return "Formato de orden inválido", 400
 
-        # Guardar archivos temporales y mapear con índice original
         uploaded_files = []
         for i, file in enumerate(files):
             if file.filename.endswith('.pdf'):
@@ -40,7 +40,6 @@ def index():
                 file.save(path)
                 uploaded_files.append(path)
 
-        # Reordenar según orden recibido del frontend
         try:
             ordered_paths = [uploaded_files[i] for i in order_indices]
         except IndexError:
@@ -49,7 +48,6 @@ def index():
         output_path = os.path.join(app.config['UPLOAD_FOLDER'], 'merged_output.pdf')
         merge_pdfs(ordered_paths, output_path)
 
-        # Limpiar archivos subidos temporales
         for path in uploaded_files:
             os.remove(path)
 
@@ -57,10 +55,9 @@ def index():
 
     return render_template('index.html')
 
-# ESTE BLOQUE ES CRUCIAL PARA DESPLIEGES DESARROLLO
-#if __name__ == '__main__':
-#    app.run()
-
-# ESTE BLOQUE ES CRUCIAL PARA DESPLIEGE EN PRODUCCION
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    # Para desarrollo:
+    app.run(debug=True)
+
+    # Para producción con waitress:
+    # serve(app, host='0.0.0.0', port=10000)
