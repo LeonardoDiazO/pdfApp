@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, send_file, redirect, url_for
 from PyPDF2 import PdfReader, PdfWriter
 import os
 from werkzeug.utils import secure_filename
-from waitress import serve
+# from waitress import serve
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
