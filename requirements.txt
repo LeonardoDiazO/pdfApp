@@ -1,5 +1,4 @@
-Flask==2.0.1
-PyPDF2==3.0.1
-reportlab==3.6.12
-gunicorn==20.1.0
-Flask-Cors==3.0.10
+Flask==2.2.5
+Werkzeug==2.2.3
+gunicorn
+PyPDF2
