@@ -1,4 +1,3 @@
 Flask>=2.3.3
-Werkzeug==2.3.0
 gunicorn
 PyPDF2
