@@ -1,92 +1,108 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Unir PDFs</title>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
-    <style>
-        #file-list { list-style: none; padding: 0; }
-        #file-list li {
-            padding: 8px;
-            margin: 5px;
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
-            cursor: move;
-        }
-        button {
-            margin-top: 10px;
-            margin-right: 5px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Unir PDFs</title>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h2>Unir archivos PDF</h2>
+<body class="bg-gray-100 min-h-screen">
 
-    <form id="pdfForm" action="/" method="POST" enctype="multipart/form-data">
-        <input type="file" id="pdfFiles" name="pdfs" multiple required accept="application/pdf">
-        <ul id="file-list"></ul>
+  <!-- ✅ NAVBAR FIJO -->
+  <nav class="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="text-xl font-bold text-blue-600">PDF Tools</div>
+      <div class="flex space-x-4">
+        <a href="/" class="text-blue-600 font-semibold border-b-2 border-blue-600">Unir PDF</a>
+        <a href="/eliminar" class="text-gray-600 hover:text-blue-600 hover:border-b-2 hover:border-blue-600">Eliminar páginas PDF</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ✅ CONTENIDO -->
+  <main class="pt-24 px-4">
+    <div class="bg-white p-6 rounded-2xl shadow-lg w-full max-w-2xl mx-auto">
+      <h2 class="text-2xl font-bold text-center mb-6 text-gray-700">Unir archivos PDF</h2>
+
+      <form id="pdfForm" action="/" method="POST" enctype="multipart/form-data" class="space-y-4">
+        <input type="file" id="pdfFiles" name="pdfs" multiple required accept="application/pdf"
+               class="w-full border rounded-lg px-4 py-2 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+
+        <ul id="file-list" class="list-none p-0 space-y-2"></ul>
+
         <input type="hidden" name="order" id="orderInput">
-        <button type="submit">Unir PDF</button>
-        <button type="button" id="clearBtn">Limpiar</button>
-    </form>
 
-    <script>
-        const input = document.getElementById("pdfFiles");
-        const fileList = document.getElementById("file-list");
-        const orderInput = document.getElementById("orderInput");
-        const clearBtn = document.getElementById("clearBtn");
+        <div class="flex justify-end space-x-3">
+          <button type="submit"
+                  class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            Unir PDF
+          </button>
+          <button type="button" id="clearBtn"
+                  class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition">
+            Limpiar
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
 
-        let filesArray = [];
+  <!-- ✅ JS PARA ORDENAR Y LIMPIAR -->
+  <script>
+    const input = document.getElementById("pdfFiles");
+    const fileList = document.getElementById("file-list");
+    const orderInput = document.getElementById("orderInput");
+    const clearBtn = document.getElementById("clearBtn");
 
-        input.addEventListener("change", function () {
-            filesArray = Array.from(input.files);
-            renderFileList();
-        });
+    let filesArray = [];
 
-        function renderFileList() {
-            fileList.innerHTML = "";
-            filesArray.forEach((file, index) => {
-                const li = document.createElement("li");
-                li.textContent = file.name;
-                li.dataset.index = index;
-                fileList.appendChild(li);
-            });
+    input.addEventListener("change", function () {
+      filesArray = Array.from(input.files);
+      renderFileList();
+    });
 
-            Sortable.create(fileList, {
-                animation: 150,
-                onEnd: function () {
-                    updateOrderInput();
-                }
-            });
+    function renderFileList() {
+      fileList.innerHTML = "";
+      filesArray.forEach((file, index) => {
+        const li = document.createElement("li");
+        li.textContent = file.name;
+        li.dataset.index = index;
+        li.className = "bg-gray-50 border px-4 py-2 rounded cursor-move shadow-sm";
+        fileList.appendChild(li);
+      });
 
-            updateOrderInput();
+      Sortable.create(fileList, {
+        animation: 150,
+        onEnd: function () {
+          updateOrderInput();
         }
+      });
 
-        function updateOrderInput() {
-            const order = [];
-            document.querySelectorAll("#file-list li").forEach(li => {
-                order.push(li.dataset.index);
-            });
-            orderInput.value = order.join(",");
-        }
+      updateOrderInput();
+    }
 
-        // Limpiar manual
-        clearBtn.addEventListener("click", () => {
-            document.getElementById("pdfForm").reset();
-            fileList.innerHTML = "";
-            orderInput.value = "";
-            filesArray = [];
-        });
+    function updateOrderInput() {
+      const order = [];
+      document.querySelectorAll("#file-list li").forEach(li => {
+        order.push(li.dataset.index);
+      });
+      orderInput.value = order.join(",");
+    }
 
-        // También limpia después de enviar
-        document.getElementById("pdfForm").addEventListener("submit", () => {
-            setTimeout(() => {
-                document.getElementById("pdfForm").reset();
-                fileList.innerHTML = "";
-                orderInput.value = "";
-                filesArray = [];
-            }, 1000); // Espera a que inicie la descarga
-        });
-    </script>
+    clearBtn.addEventListener("click", () => {
+      document.getElementById("pdfForm").reset();
+      fileList.innerHTML = "";
+      orderInput.value = "";
+      filesArray = [];
+    });
+
+    document.getElementById("pdfForm").addEventListener("submit", () => {
+      setTimeout(() => {
+        document.getElementById("pdfForm").reset();
+        fileList.innerHTML = "";
+        orderInput.value = "";
+        filesArray = [];
+      }, 1000);
+    });
+  </script>
 </body>
 </html>
