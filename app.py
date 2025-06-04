@@ -55,6 +55,42 @@ def index():
 
     return render_template('index.html')
 
+@app.route('/eliminar', methods=['GET', 'POST'])
+def eliminar():
+    if request.method == 'POST':
+        pdf_file = request.files.get('pdf')
+        pages_str = request.form.get('remove_pages', '')
+
+        if not pdf_file or not pages_str:
+            return "Falta el archivo o las páginas a eliminar", 400
+
+        try:
+            pages_to_remove = list(map(int, pages_str.split(',')))
+        except ValueError:
+            return "Formato de páginas inválido", 400
+
+        filename = secure_filename(pdf_file.filename)
+        input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        pdf_file.save(input_path)
+
+        reader = PdfReader(input_path)
+        writer = PdfWriter()
+
+        for i, page in enumerate(reader.pages):
+            if i not in pages_to_remove:
+                writer.add_page(page)
+
+        output_path = os.path.join(app.config['UPLOAD_FOLDER'], 'cleaned_output.pdf')
+        with open(output_path, 'wb') as f:
+            writer.write(f)
+
+        os.remove(input_path)
+
+        return send_file(output_path, as_attachment=True)
+
+    return render_template('eliminar.html')
+
+
 if __name__ == '__main__':
     # Para desarrollo:
     app.run(debug=True)
