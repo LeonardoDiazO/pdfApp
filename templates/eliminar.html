@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Eliminar páginas del PDF</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="text-xl font-bold text-blue-600">PDF Tools</div>
+      <div class="flex space-x-4">
+        <a href="/" class="text-gray-600 hover:text-blue-600 hover:border-b-2 hover:border-blue-600">Unir PDF</a>
+        <a href="/eliminar" class="text-blue-600 font-semibold border-b-2 border-blue-600">Eliminar páginas</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="pt-24 px-4">
+    <div class="bg-white p-6 rounded-2xl shadow-lg w-full max-w-4xl mx-auto">
+      <h2 class="text-2xl font-bold text-center mb-6 text-gray-700">Eliminar páginas del PDF</h2>
+
+      <form id="deleteForm" action="/eliminar" method="POST" enctype="multipart/form-data" class="space-y-4">
+        <input type="file" id="pdfInput" name="pdf" required accept="application/pdf"
+               class="w-full border rounded-lg px-4 py-2 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"/>
+
+        <div id="preview" class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6"></div>
+
+        <input type="hidden" name="remove_pages" id="removePages">
+
+        <div class="flex justify-end">
+          <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+            Eliminar páginas
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- JS para mostrar previews y seleccionar páginas -->
+  <script>
+    const pdfInput = document.getElementById('pdfInput');
+    const preview = document.getElementById('preview');
+    const removePagesInput = document.getElementById('removePages');
+    let pageCount = 0;
+
+    pdfInput.addEventListener('change', async function () {
+      preview.innerHTML = '';
+      const file = this.files[0];
+      if (!file) return;
+
+      const fileReader = new FileReader();
+      fileReader.onload = async function () {
+        const typedarray = new Uint8Array(this.result);
+        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+        pageCount = pdf.numPages;
+
+        for (let i = 1; i <= pageCount; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: 0.5 });
+
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          const context = canvas.getContext('2d');
+
+          await page.render({ canvasContext: context, viewport }).promise;
+
+          const container = document.createElement('div');
+          container.className = "relative border rounded shadow";
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.value = i - 1; // Página base 0 para Python
+          checkbox.className = 'absolute top-2 left-2 w-5 h-5';
+
+          container.appendChild(checkbox);
+          container.appendChild(canvas);
+          preview.appendChild(container);
+        }
+      };
+      fileReader.readAsArrayBuffer(file);
+    });
+
+    document.getElementById('deleteForm').addEventListener('submit', function () {
+      const checkboxes = preview.querySelectorAll('input[type="checkbox"]:checked');
+      const selectedPages = Array.from(checkboxes).map(cb => parseInt(cb.value));
+      removePagesInput.value = selectedPages.join(',');
+    });
+  </script>
+
+</body>
+</html>
